@@ -1,0 +1,30 @@
+.dns-table {
+	border: 1px solid #aaa;
+	border-bottom: 0;
+}
+
+.dns-table tr th, .dns-table tr td {
+	padding: .25em .5em;
+}
+
+.dns-table tr th {
+	background-color: rgb(242, 242, 242);
+	border-bottom: 1px solid #aaa;
+	font-family: Arial;
+}
+
+.dns-table tr td {
+	border-bottom: 1px solid #aaa;
+}
+
+.dns-table .priority {
+	color: rgb(34, 23, 133);
+	background: rgb(241, 240, 252);
+	border: 1px solid rgb(115, 102, 228);
+	border-radius: 4px;
+	padding: 0 4px;
+}
+
+.dns-table .priority-container {
+	text-align: right;
+}
