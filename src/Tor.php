@@ -11,12 +11,12 @@ final class Tor
 {
 	private const EXIT_NODES_LIST = 'https://check.torproject.org/torbulkexitlist';
 
-	private string $cachePath;
+	private SimpleFileCache $cache;
 
 
 	public function __construct(?string $cachePath = null)
 	{
-		$this->cachePath = $cachePath ?? sys_get_temp_dir() . '/network/tor.txt';
+		$this->cache = new SimpleFileCache($cachePath);
 	}
 
 
@@ -25,14 +25,10 @@ final class Tor
 	 */
 	public function getExitNodesIpList(): array
 	{
-		$cachePath = $this->getCachePath();
-		$cache = is_file($cachePath)
-			? trim(FileSystem::read($cachePath))
-			: '';
-
-		if ($cache === '') {
+		$cache = $this->cache->load('tor');
+		if ($cache === null) {
 			$cache = FileSystem::read(self::EXIT_NODES_LIST);
-			FileSystem::write($cachePath, $cache);
+			$this->cache->save('tor', $cache, '12 hours');
 		}
 
 		return explode("\n", $cache);
@@ -42,11 +38,5 @@ final class Tor
 	public function isTor(string $ip): bool
 	{
 		return in_array($ip, $this->getExitNodesIpList(), true);
-	}
-
-
-	public function getCachePath(): string
-	{
-		return $this->cachePath;
 	}
 }
