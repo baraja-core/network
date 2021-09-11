@@ -69,7 +69,7 @@ final class Ip
 
 		$return = [];
 		foreach (range($start, $end) as $ip) {
-			$return[] = (string) long2ip($ip);
+			$return[] = (string) long2ip((int) $ip);
 		}
 
 		return $return;
@@ -170,7 +170,7 @@ final class Ip
 			$left = $netmask - 16 * ($i - 1);
 			$left = ($left <= 16) ? $left : 16;
 			$mask = ~(0xffff >> $left) & 0xffff;
-			if (($bytesAddr[$i] & $mask) !== ($bytesTest[$i] & $mask)) {
+			if (isset($bytesAddr[$i]) && ($bytesAddr[$i] & $mask) !== ($bytesTest[$i] & $mask)) {
 				return false;
 			}
 		}
