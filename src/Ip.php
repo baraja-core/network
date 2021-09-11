@@ -22,7 +22,7 @@ final class Ip
 				$ip = $_SERVER['HTTP_CF_CONNECTING_IP'];
 			} elseif (isset($_SERVER['REMOTE_ADDR']) === true) {
 				$ip = $_SERVER['REMOTE_ADDR'];
-				if (preg_match('/^(?:127|10)\.0\.0\.[12]?\d{1,2}$/', $ip)) {
+				if (preg_match('/^(?:127|10)\.0\.0\.[12]?\d{1,2}$/', $ip) === 1) {
 					if (isset($_SERVER['HTTP_X_REAL_IP'])) {
 						$ip = $_SERVER['HTTP_X_REAL_IP'];
 					} elseif (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
@@ -63,12 +63,16 @@ final class Ip
 	public static function getListFromRange(string $range): array
 	{
 		$parts = explode('/', $range);
-		$exponent = 32 - $parts[1];
-		$count = 2 ** $exponent;
-		$start = ip2long($parts[0]);
-		$end = $start + $count;
+		$exponent = 32 - ((int) $parts[1]);
+		$start = (int) ip2long($parts[0]);
+		$end = $start + (2 ** $exponent);
 
-		return array_map('long2ip', range($start, (int) $end));
+		$return = [];
+		foreach (range($start, $end) as $ip) {
+			$return[] = (string) long2ip($ip);
+		}
+
+		return $return;
 	}
 
 
@@ -111,7 +115,7 @@ final class Ip
 			[$address, $netmask] = explode('/', $ip, 2);
 			if ($netmask === '0') {
 				// Ensure IP is valid - using ip2long below implicitly validates, but we need to do it manually here
-				return filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
+				return (bool) filter_var($address, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4);
 			}
 			if ($netmask < 0 || $netmask > 32) {
 				return false;
@@ -121,12 +125,10 @@ final class Ip
 			$netmask = 32;
 		}
 
-		return substr_compare(
-				sprintf('%032b', ip2long($requestIp)),
-				sprintf('%032b', ip2long($address)),
-				0,
-				$netmask,
-			) === 0;
+		$leftIp = sprintf('%032b', ip2long($requestIp));
+		$rightIp = sprintf('%032b', ip2long($address));
+
+		return substr_compare($leftIp, $rightIp, 0, (int) $netmask) === 0;
 	}
 
 
@@ -141,7 +143,7 @@ final class Ip
 	 */
 	public static function checkV6(string $requestIp, string $ip): bool
 	{
-		if (!((extension_loaded('sockets') && defined('AF_INET6')) || @inet_pton('::1'))) {
+		if (!((extension_loaded('sockets') && defined('AF_INET6')) || (bool) @inet_pton('::1'))) {
 			throw new \RuntimeException(
 				'Unable to check Ipv6. Check that PHP was not compiled with option "disable-ipv6".',
 			);
@@ -149,6 +151,7 @@ final class Ip
 
 		if (str_contains($ip, '/')) {
 			[$address, $netmask] = explode('/', $ip, 2);
+			$netmask = (int) $netmask;
 			if ($netmask < 1 || $netmask > 128) {
 				return false;
 			}
@@ -157,9 +160,9 @@ final class Ip
 			$netmask = 128;
 		}
 
-		$bytesAddr = unpack('n*', @inet_pton($address));
-		$bytesTest = unpack('n*', @inet_pton($requestIp));
-		if (!$bytesAddr || !$bytesTest) {
+		$bytesAddr = unpack('n*', (string) @inet_pton($address));
+		$bytesTest = unpack('n*', (string) @inet_pton($requestIp));
+		if (!((bool) $bytesAddr && (bool) $bytesTest)) {
 			return false;
 		}
 
