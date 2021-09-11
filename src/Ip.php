@@ -170,6 +170,7 @@ final class Ip
 			$left = $netmask - 16 * ($i - 1);
 			$left = ($left <= 16) ? $left : 16;
 			$mask = ~(0xffff >> $left) & 0xffff;
+			/** @phpstan-ignore-next-line */
 			if (isset($bytesAddr[$i]) && ($bytesAddr[$i] & $mask) !== ($bytesTest[$i] & $mask)) {
 				return false;
 			}
