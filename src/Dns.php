@@ -10,7 +10,7 @@ final class Dns
 	public function getTable(string $domain): DnsResponse
 	{
 		$return = [];
-		foreach ((array) dns_get_record($domain, DNS_A) as $a) {
+		foreach ($this->getRecords($domain, DNS_A) as $a) {
 			$return[] = new DnsRecord(
 				type: $a['type'],
 				name: $a['host'],
@@ -18,7 +18,7 @@ final class Dns
 				ttl: $a['ttl'],
 			);
 		}
-		foreach ((array) dns_get_record($domain, DNS_AAAA) as $a) {
+		foreach ($this->getRecords($domain, DNS_AAAA) as $a) {
 			$return[] = new DnsRecord(
 				type: $a['type'],
 				name: $a['host'],
@@ -26,7 +26,7 @@ final class Dns
 				ttl: $a['ttl'],
 			);
 		}
-		foreach ((array) dns_get_record($domain, DNS_CNAME) as $cname) {
+		foreach ($this->getRecords($domain, DNS_CNAME) as $cname) {
 			$return[] = new DnsRecord(
 				type: $cname['type'],
 				name: $cname['host'],
@@ -34,7 +34,7 @@ final class Dns
 				ttl: $cname['ttl'],
 			);
 		}
-		foreach ((array) dns_get_record($domain, DNS_MX) as $mx) {
+		foreach ($this->getRecords($domain, DNS_MX) as $mx) {
 			$return[] = new DnsRecord(
 				type: $mx['type'],
 				name: $mx['host'],
@@ -43,7 +43,7 @@ final class Dns
 				priority: $mx['pri'],
 			);
 		}
-		foreach ((array) dns_get_record($domain, DNS_TXT) as $txt) {
+		foreach ($this->getRecords($domain, DNS_TXT) as $txt) {
 			$return[] = new DnsRecord(
 				type: $txt['type'],
 				name: $txt['host'],
@@ -62,8 +62,26 @@ final class Dns
 	public function getNameservers(string $domain): array
 	{
 		$return = [];
-		foreach ((array) dns_get_record($domain, DNS_NS) as $ns) {
+		foreach ($this->getRecords($domain, DNS_NS) as $ns) {
 			$return[] = $ns['target'];
+		}
+
+		return $return;
+	}
+
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function getRecords(string $hostname, int $type): array
+	{
+		$servers = ['1.1.1.1'];
+		$records = (array) @dns_get_record($hostname, $type, $servers);
+		$return = [];
+		foreach ($records as $record) {
+			if (isset($record['type'])) {
+				$return[] = $record;
+			}
 		}
 
 		return $return;
