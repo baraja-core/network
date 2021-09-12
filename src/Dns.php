@@ -71,7 +71,7 @@ final class Dns
 
 
 	/**
-	 * @return array<string, mixed>
+	 * @return array<int, mixed>
 	 */
 	private function getRecords(string $hostname, int $type): array
 	{
