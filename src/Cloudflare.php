@@ -46,14 +46,19 @@ final class Cloudflare
 
 	public static function isCloudFlare(): bool
 	{
-		if (!isset($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+		$cfConnectionIp = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? null;
+		$remoteIp = $_SERVER['REMOTE_ADDR'] ?? null;
+		if ($remoteIp === '127.0.0.1') { // using proxy
+			$remoteIp = $_SERVER['HTTP_X_REAL_IP'] ?? $remoteIp;
+		}
+		if ($cfConnectionIp === null || $remoteIp === null) { // CF is not used or CLI mode
 			return false;
 		}
-		if (($_SERVER['REMOTE_ADDR'] ?? '') === ($_SERVER['HTTP_CF_CONNECTING_IP'] ?? '')) {
+		if ($cfConnectionIp === $remoteIp) { // direct connection
 			return true;
 		}
 
-		return self::isCloudFlareIP();
+		return ($_SERVER['HTTP_CDN_LOOP'] ?? '') === 'cloudflare' && self::isCloudFlareIP();
 	}
 
 
