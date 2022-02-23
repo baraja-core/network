@@ -65,6 +65,9 @@ final class Cloudflare
 	public static function isCloudFlareIP(?string $ip = null): bool
 	{
 		$ip = $ip ?? ($_SERVER['REMOTE_ADDR'] ?? Ip::LOCALHOST);
+		if ($ip === Ip::LOCALHOST) { // using proxy
+			$ip = $_SERVER['HTTP_X_REAL_IP'] ?? $ip;
+		}
 		if ($ip === Ip::LOCALHOST) {
 			return false;
 		}
