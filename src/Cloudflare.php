@@ -58,7 +58,7 @@ final class Cloudflare
 			return true;
 		}
 
-		return ($_SERVER['HTTP_CDN_LOOP'] ?? '') === 'cloudflare' && self::isCloudFlareIP();
+		return ($_SERVER['HTTP_CDN_LOOP'] ?? '') === 'cloudflare' && self::isCloudFlareIP($remoteIp);
 	}
 
 
